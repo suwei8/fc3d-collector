@@ -20,6 +20,14 @@ python scripts/collect.py            # 采集最新期（写入本仓库 data/ r
 FC3D_ROOT=/path/to/fc3d-archive python scripts/collect.py
 ```
 
+## Telegram 推送
+
+归档仓库有数据变更时，自动把最新一期记录推送到 Telegram。
+需要在仓库 Settings → Secrets and variables → Actions 配置：
+
+- `TELEGRAM_BOT_TOKEN`：BotFather 颁发的 bot token
+- `TELEGRAM_CHAT_ID`：接收消息的 chat id
+
 ## 手动触发
 
 Actions → collect → Run workflow，可选参数：

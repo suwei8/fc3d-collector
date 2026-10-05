@@ -83,6 +83,7 @@ jobs:
           fi
 
       - name: Commit changed archive files
+        id: commit
         working-directory: archive
         run: |
           # git diff does not report brand-new untracked files, so inspect
@@ -105,3 +106,11 @@ jobs:
 
           git commit -m "data: collect $(date -u +%Y-%m-%dT%H:%MZ)"
           git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Notify Telegram
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python collector/scripts/notify_telegram.py archive
