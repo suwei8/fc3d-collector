@@ -28,6 +28,9 @@ FC3D_ROOT=/path/to/fc3d-archive python scripts/collect.py
 - `TELEGRAM_BOT_TOKEN`：BotFather 颁发的 bot token
 - `TELEGRAM_CHAT_ID`：接收消息的 chat id
 
+平时仅在归档有数据变更时推送；手动触发可勾选 `test_notify` 强制推一条
+（用于验证 secrets 配置）。
+
 ## 手动触发
 
 Actions → collect → Run workflow，可选参数：

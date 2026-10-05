@@ -15,6 +15,11 @@ on:
         description: "回填结束期号（如 2026263），配合 from_issue 使用"
         required: false
         type: string
+      test_notify:
+        description: "测试：跳过变更检查，强制推送最新一期到 Telegram"
+        required: false
+        type: boolean
+        default: false
   schedule:
     # 上游发布时间（北京时间）：太湖一语 ~17:31；官方试机号 ~18:05-18:10 试摇，
     # 天齐网 ~18:10 更新；牛彩网汇总 ~17:05 建站、试机号谜语 18:10 后编辑补入。
@@ -109,7 +114,7 @@ jobs:
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Notify Telegram
-        if: steps.commit.outputs.changed == 'true'
+        if: steps.commit.outputs.changed == 'true' || github.event.inputs.test_notify == 'true'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
