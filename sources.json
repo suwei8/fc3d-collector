@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "sources": {
+    "trial": {
+      "id": "tianqi-sjh",
+      "name": "天齐网 福彩3D试机号历史",
+      "url": "https://www.800820.cn/kj/3d_sjh.html",
+      "fields": [
+        "trial_number",
+        "focus",
+        "gold",
+        "corresponding"
+      ]
+    },
+    "taihu": {
+      "id": "cpzj-taihu",
+      "name": "彩之家 太湖一语定胆",
+      "url": "https://www.cpzj.com/3d/yydd/",
+      "fields": [
+        "taihu"
+      ]
+    },
+    "cz89_nightly": {
+      "id": "cz89-nightly",
+      "name": "牛彩网 福彩3D晚间字谜汇总大全",
+      "discovery_url": "https://m.cz89.com/",
+      "fields": [
+        "beijing",
+        "bottom_focus",
+        "bottom_gold"
+      ]
+    }
+  },
+  "unresolved_fields": []
+}
