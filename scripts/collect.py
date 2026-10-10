@@ -349,7 +349,9 @@ def build_record(issue: str, tianqi: dict[str, dict[str, str]], taihu: dict[str,
     if existing:
         fields.update(existing.get("fields", {}))
 
-    sources: dict[str, Any] = {}
+    # 保留已有来源条目（含人工补录的 group-image / sina-open 等），本轮命中的来源
+    # 会覆盖同名条目并刷新 fetched_at；未命中的条目原样保留，避免跑批丢溯源信息。
+    sources: dict[str, Any] = dict(existing.get("sources", {})) if existing else {}
     draw_result = existing.get("draw_result") if existing else None
     if issue in tianqi:
         for key in ("trial_number", "focus", "gold", "corresponding"):
@@ -447,6 +449,12 @@ def render_md(record: dict[str, Any]) -> str:
     else:
         lines.append("- 暂无自动来源记录")
 
+    if record.get("notes"):
+        lines.extend(["", "## 备注", ""])
+        for note in record["notes"]:
+            text = note.get("text", "") if isinstance(note, dict) else str(note)
+            lines.append(f"- {text}")
+
     lines.extend([
         "",
         "## 说明",
@@ -456,6 +464,27 @@ def render_md(record: dict[str, Any]) -> str:
         "",
     ])
     return "\n".join(lines)
+
+
+CONTENT_KEYS = ("fields", "draw_result", "status", "verified_by", "locked_fields", "notes")
+
+
+def _norm_sources(sources: dict[str, Any] | None) -> dict[str, Any]:
+    return {
+        key: {k: v for k, v in meta.items() if k != "fetched_at"}
+        for key, meta in (sources or {}).items()
+    }
+
+
+def content_unchanged(existing: dict[str, Any], record: dict[str, Any]) -> bool:
+    """忽略 collected_at / sources.*.fetched_at 时间戳，判断记录实质内容是否变化。
+
+    每次跑批都会刷新时间戳；若据此重写文件，每次 schedule 都会产生 diff →
+    commit → 触发 Telegram 通知（已观察到同一条 verified 消息一夜重复推送）。
+    """
+    if any(existing.get(k) != record.get(k) for k in CONTENT_KEYS):
+        return False
+    return _norm_sources(existing.get("sources")) == _norm_sources(record.get("sources"))
 
 
 def write_record(record: dict[str, Any]) -> None:
@@ -518,6 +547,9 @@ def backfill(lo: str, hi: str) -> int:
                 "fetched_at": record["collected_at"],
                 "fields": ["draw_result"],
             }
+        if existing and content_unchanged(existing, record):
+            skipped += 1
+            continue
         write_record(record)
         written += 1
         print(f"[ok] {issue} written" + ("" if existing else " (new)"))
@@ -589,6 +621,10 @@ def main() -> int:
         raise SystemExit(f"No usable upstream data for issue {issue}")
 
     record = build_record(issue, tianqi, taihu, cz89=cz89, cz89_url=cz89_url)
+    existing = load_existing(issue)
+    if existing and content_unchanged(existing, record):
+        print(f"[info] issue {issue} unchanged; keep existing record")
+        return 0
     write_record(record)
     print(json.dumps(record, ensure_ascii=False, indent=2))
     return 0
